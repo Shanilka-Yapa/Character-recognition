@@ -36,7 +36,23 @@ def predict(model_type):
         # Preprocess image to standard 28x28 grayscale square
         img = Image.open(file.stream).convert('L')
         img = img.resize((28, 28))
-        img_array = np.array(img) / 255.0
+        img_array = np.array(img, dtype=np.float32)
+
+        # Find the absolute darkest (pen) and lightest (paper) spots
+        min_val = np.min(img_array)
+        max_val = np.max(img_array)
+
+        # Scale the image so the pen becomes pure white (255) and paper becomes pure black (0)
+        if max_val - min_val > 0:
+            img_array = (max_val - img_array) / (max_val - min_val) * 255.0
+        else:
+            img_array = 255.0 - img_array
+
+        # Clean cutoff: Ignore anything that isn't a strong pen stroke (clears grid lines)
+        img_array = np.where(img_array > 120, 255.0, 0.0)
+
+        # Normalize to 0.0 - 1.0 range
+        img_array = img_array / 255.0
         img_array = img_array.reshape(1, 28, 28, 1)
         
         # Route logic depending on which model the user selects on the UI

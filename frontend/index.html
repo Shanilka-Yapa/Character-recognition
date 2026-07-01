@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multilingual Character Recognition</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f5f7fb;
+            color: #333;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 24px;
+            text-align: center;
+            color: #1a1a1a;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        select, input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 14px;
+            background-color: #fafafa;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #0052a3;
+        }
+        .result-box {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #0066cc;
+            text-align: center;
+        }
+        .result-label {
+            font-size: 14px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .result-value {
+            font-size: 48px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Character Recognition Portal</h1>
+    
+    <div class="form-group">
+        <label for="modelSelect">Target Recognition Mode</label>
+        <select id="modelSelect">
+            <option value="digits">Handwritten Digits (0-9)</option>
+            <option value="english">English Alphabets (A-Z)</option>
+            <option value="sinhala">Sinhala Characters</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="imageInput">Upload Character Image</label>
+        <input type="file" id="imageInput" accept="image/*">
+    </div>
+
+    <button onclick="uploadAndPredict()">Run Model Prediction</button>
+
+    <div class="result-box">
+        <div class="result-label">System Output</div>
+        <div id="outputValue" class="result-value">-</div>
+    </div>
+</div>
+
+<script>
+    async function uploadAndPredict() {
+        const fileInput = document.getElementById('imageInput');
+        const modelSelect = document.getElementById('modelSelect');
+        const outputDisplay = document.getElementById('outputValue');
+
+        if (!fileInput.files[0]) {
+            alert('Please select an image file to upload first.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        outputDisplay.innerText = "...";
+
+        try {
+            const response = await fetch(`http://127.0.0.1:5000/predict/${modelSelect.value}`, {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (data.error) {
+                outputDisplay.innerText = "Error";
+                alert(data.error);
+            } else {
+                outputDisplay.innerText = data.prediction;
+            }
+        } catch (err) {
+            outputDisplay.innerText = "Error";
+            alert("Could not reach backend API server. Make sure app.py is actively running.");
+        }
+    }
+</script>
+
+</body>
+</html>
